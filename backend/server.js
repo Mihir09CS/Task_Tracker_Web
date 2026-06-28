@@ -4,14 +4,21 @@ dotenv.config();
 import app from "./app.js";
 import connectDB from "./config/db.js";
 
-const PORT = process.env.PORT || 5000;
+let isConnected = false;
 
-const startServer = async () => {
-  await connectDB();
+export default async function handler(req, res) {
+  try {
+    if (!isConnected) {
+      await connectDB();
+      isConnected = true;
+    }
 
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-  });
-};
-
-startServer();
+    return app(req, res);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server initialization failed",
+    });
+  }
+}
